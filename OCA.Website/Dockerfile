@@ -14,6 +14,10 @@ WORKDIR "/src/OCA.Website"
 RUN dotnet build "OCA.Website.csproj" -c Release -o /app/build
 
 FROM build AS publish
+RUN \ 
+  apt update && \
+  apt install -y ca-certificates && \
+  update-ca-certificates
 RUN dotnet publish "OCA.Website.csproj" -c Release -o /app/publish /p:UseAppHost=false
 
 FROM base AS final

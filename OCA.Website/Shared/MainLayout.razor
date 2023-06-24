@@ -1,6 +1,9 @@
 ﻿@inherits LayoutComponentBase
 
 <PageTitle>OCA.Website</PageTitle>
+<MudThemeProvider />
+<MudDialogProvider />
+<MudSnackbarProvider />
 
 <div class="page">
     <div class="sidebar">
@@ -15,5 +18,6 @@
         <article class="content px-4">
             @Body
         </article>
+         <OCA.Website.Components.CustomFooter />
     </main>
 </div>
