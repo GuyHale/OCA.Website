@@ -1,0 +1,122 @@
+﻿@page "/cryptocurrencies"
+
+<PageTitle>Cryptocurrencies</PageTitle>
+
+@using MudBlazor;
+@using OCA.Website.Components;
+@using OCA.Website.Interfaces;
+@using OCA.Website.Models;
+@inject ICryptocurrency cryptocurrency
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
+
+<style>
+    .row-on-hover:hover {
+        cursor: pointer;
+        background-color: #DCDCDC;
+    }
+
+    .page-background {
+        
+        width: 100%;
+        height: 100%;
+        padding-left: 0;
+        padding-right: 0;
+    }
+
+</style>
+<div class="d-flex align-items-center flex-column pt-12">
+    <div>
+        <h2 class="header-typography">Our data is continuously updated</h2>
+    </div>
+    <div class="d-flex flex-row pt-12 align-content-around flex-grow-1">
+        <div class="mr-4">
+            <button type="button" href="#" @onclick="OpenDialog" class="css-button-sliding-to-left--rose">Get your API key now</button>
+        </div>
+        <div class="ml-4">
+            <button type="button" href="#" class="css-button-sliding-to-left--rose">Read API documentation</button>
+        </div>
+    </div>
+    <div class="pt-16">
+        <span class="line-divider-solid white-text"></span>
+    </div>
+    <div class="pt-12">
+        <h3 class="header-typography">Is your favourite project in the top 100?</h3>
+    </div>
+    <div class="d-flex justify-content-between pt-8 row logo-row-width">
+        <div class="col-auto mb-2">
+            <MudTextField Class="mt-0 pt-0" Placeholder="Search by project name" @bind-Value="_cryptoName" TextChanged="@SearchCryptoOnChange" Variant="Variant.Text" Clearable="true" Adornment="Adornment.End" AdornmentIcon="@Icons.Material.Rounded.Search" AdornmentColor="Color.Secondary" Immediate="true" />
+        </div>
+        <div class="col-auto mt-2">
+            <MudAvatar Rounded="true" Color="Color.Secondary" Variant="Variant.Outlined">
+                <MudIcon Icon="@Icons.Material.Filled.FormatListNumbered" />
+            </MudAvatar>
+        </div>
+        <div class="col-auto mt-2">
+            <MudAvatar Rounded="true" Color="Color.Tertiary" Variant="Variant.Filled">
+                <MudIcon Icon="@Icons.Material.Filled.Update" Size="Size.Large" />
+                
+            </MudAvatar>            
+        </div>
+        <div class="col-auto mt-2">
+            <MudAvatar Color="Color.Secondary" Rounded="true" Variant="Variant.Outlined">
+                <MudIcon Icon="@Icons.Material.Filled.Comment" Size="Size.Large" />
+            </MudAvatar>            
+        </div>
+    </div>
+    <div class="card-body mt-12">
+        @if(_cryptocurrencies.Any())
+        {
+            <MudTable Class="table-width" @ref="@_table" Items="@_cryptocurrencies" RowsPerPage="10" Hover="true" Breakpoint="Breakpoint.Sm" LoadingProgressColor="Color.Info">
+                <HeaderContent>
+                    <MudTh>Rank</MudTh>
+                    <MudTh>Project name</MudTh>
+                    <MudTh>Coin Valuation</MudTh>
+                    <MudTh>Market Cap</MudTh>
+                </HeaderContent>
+                <RowTemplate>
+                    <MudTd DataLabel="Rank">@context.Rank</MudTd>
+                    <MudTd DataLabel="Name">@context.Name</MudTd>
+                    <MudTd DataLabel="Coin Price">@context.USDValuation</MudTd>
+                    <MudTd DataLabel="Market cap">@context.MarketCap</MudTd>
+                </RowTemplate>
+                <PagerContent>
+                    <MudPagination Variant="Variant.Outlined" SelectedChanged="PageChanged" Count="@((_table.GetFilteredItemsCount() + _table.RowsPerPage - 1) / _table.RowsPerPage)" Class="pa-4" />
+                </PagerContent>
+            </MudTable>
+        }       
+    </div>
+</div>
+
+@code {
+    private const int _numPerPage = 10;
+    private IEnumerable<Cryptocurrency> _cryptocurrencies = Enumerable.Empty<Cryptocurrency>();
+    private IEnumerable<Cryptocurrency> _cryptocurrenciesOriginal = Enumerable.Empty<Cryptocurrency>();
+    private IEnumerable<Cryptocurrency[]> _cryptocurrenciesChunked = Enumerable.Empty<Cryptocurrency[]>();
+    private MudTable<Cryptocurrency> _table = new();
+    private string _cryptoName = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _cryptocurrencies = _cryptocurrenciesOriginal = await cryptocurrency.Get();
+    }
+
+    private void PageChanged(int i)
+    {
+        _table.NavigateTo(i - 1);
+    }
+
+    private void SearchCryptoOnChange()
+    {
+        _cryptocurrencies = _cryptocurrenciesOriginal;
+        _cryptocurrencies = _cryptocurrencies.Where(x => x.Name.ToLower().Contains(_cryptoName.ToLower()));
+        StateHasChanged();
+    }
+
+    private void OpenDialog()
+    {
+        DialogOptions closeOnEscapeKey = new DialogOptions() { CloseOnEscapeKey = true };
+
+        DialogService.Show<ApiKeyCreater>("Get api key", closeOnEscapeKey);
+    }    
+}

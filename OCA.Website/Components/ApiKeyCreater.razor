@@ -1,0 +1,112 @@
+﻿@using System.Text.RegularExpressions;
+@using System.ComponentModel.DataAnnotations;
+@using OCA.Website.Interfaces;
+@inject IApiKeyCreation apiKeyCreation;
+@inject IJSRuntime jsRuntime;
+@inject ISnackbar Snackbar;
+
+<style>
+    .dialog-width {
+        min-width: 40rem;
+    }
+
+    .no-border {
+        border: none;
+    }
+</style>
+
+<MudDialog Class="dialog-width">
+    <DialogContent>           
+        <MudItem>
+
+            @if (_apiKeyCreationResponse is not null && _showAlert)
+            {
+                <MudButton Color="Color.Success"></MudButton>
+            }
+
+            @if (!_creatingApiKey && (_apiKeyCreationResponse is null || !_apiKeyCreationResponse.Success))
+            {
+                <div class="col-auto">
+                    <button type="button" href="#" class="css-button-sliding-to-left--rose" @onclick="ApiKeyValidation">Create API Key</button>
+               </div>                   
+            }
+            @if(_creatingApiKey && _apiKeyCreationResponse is null)
+            {
+                <div class="col-auto">
+                    <MudProgressCircular Color="Color.Secondary" Indeterminate="true" />
+                </div>               
+            }
+
+            @if (_apiKeyCreationResponse is not null)
+            {
+                if(_apiKeyCreationResponse.Success)
+                {
+                    <MudStack Spacing="9" Row="true">
+                        <MudTooltip Text="Api key">
+                            <MudChip Variant="Variant.Filled" Color="Color.Secondary">Api key: @_apiKey</MudChip>
+                        </MudTooltip>
+                        
+                        @if (_copyingToClipboard)
+                        {
+                            <MudProgressCircular Color="Color.Secondary" Indeterminate="true" />
+                        }
+                        else
+                        {
+                            <MudTooltip Text="@(_copied ? "Success" : "Copy to clipboard")">
+                                <MudIconButton Color="Color.Secondary" Icon="@(!_copied ? Icons.Material.Filled.ContentCopy : Icons.Material.Filled.Check)" Disabled="_copied" OnClick="@(() => CopyTextToClipboard(_apiKey))" aria-label="copy-to-clipboard"></MudIconButton>
+                            </MudTooltip>
+                        }
+                    </MudStack>              
+                }
+            }
+        </MudItem>                        
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Close">Cancel</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; } = new();
+    private void Close() => MudDialog.Close(DialogResult.Ok(true));
+    private string _apiKey { get; set; } = string.Empty;
+    private bool _creatingApiKey { get; set; } = false;
+    private ICustomResponse? _apiKeyCreationResponse { get; set; }
+    private bool _showAlert { get; set; } = true;
+    private bool _copyingToClipboard = false;
+    private bool _copied = false;
+
+    private string CreateApiKey() => _apiKey = Guid.NewGuid().ToString();
+
+    private async Task ApiKeyValidation()
+    {
+        _creatingApiKey = true;
+        _apiKeyCreationResponse = null;
+        _showAlert = true;
+        CreateApiKey();
+        StateHasChanged();
+
+        _apiKeyCreationResponse = await apiKeyCreation.CreateApiKey(_apiKey);
+        StateHasChanged();
+        _creatingApiKey = false;
+        ApiKeyCreationMessage();
+    }
+
+    private void CloseMe() => _showAlert = false;
+
+
+    private async Task CopyTextToClipboard(string text)
+    {
+        _copyingToClipboard = true;
+        await jsRuntime.InvokeVoidAsync("navigator.clipboard.writeText", text);
+        _copyingToClipboard = false;
+        _copied = true;
+        StateHasChanged();
+    }
+
+    private void ApiKeyCreationMessage()
+    {
+        if (_apiKeyCreationResponse is null) return;
+        Snackbar.Add(_apiKeyCreationResponse.Success ? "Success! Your api key has been created and is ready for use." : "Sorry! We could not create your api key, please try again.", _apiKeyCreationResponse.Success ? Severity.Success : Severity.Error);
+    }
+}
