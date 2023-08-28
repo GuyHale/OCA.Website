@@ -9,6 +9,7 @@
 @inject ICryptocurrency cryptocurrency
 @inject IDialogService DialogService
 @inject ISnackbar Snackbar
+@inject NavigationManager _navigationManager
 
 <style>
     .row-on-hover:hover {
@@ -34,7 +35,7 @@
             <button type="button" href="#" @onclick="OpenDialog" class="css-button-sliding-to-left--rose">Get your API key now</button>
         </div>
         <div class="ml-4">
-            <button type="button" href="#" class="css-button-sliding-to-left--rose">Read API documentation</button>
+            <button type="button" @onclick="@(() => Redirect("documentation"))" href="documentation" class="css-button-sliding-to-left--rose">Read API documentation</button>
         </div>
     </div>
     <div class="pt-16">
@@ -118,5 +119,10 @@
         DialogOptions closeOnEscapeKey = new DialogOptions() { CloseOnEscapeKey = true };
 
         DialogService.Show<ApiKeyCreater>("Get api key", closeOnEscapeKey);
-    }    
+    }
+
+    private void Redirect(string page)
+    {
+        _navigationManager.NavigateTo(page);
+    }
 }
