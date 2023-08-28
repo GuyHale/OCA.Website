@@ -1,7 +1,101 @@
-﻿@page "/documentation"
+﻿@page "/Documentation"
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
+@using OCA.Website.Components;
+@using OCA.Website.Models;
 
-<h3>Documentation</h3>
+<PageTitle>Documentation</PageTitle>
+<div class="d-flex align-items-center flex-column pt-12">
+    <div>
+        <h2 class="header-typography">The cryptocurrency information providing API.</h2>
+    </div>
+    <div class="d-flex flex-row pt-12 align-content-around flex-grow-1">
+        <div class="mr-4">
+            <button type="button" @onclick="OpenDialog" href="#" class="css-button-sliding-to-left--rose">Get your API key now</button>
+        </div>
+        <div class="ml-4">
+            <button type="button" href="#" class="css-button-sliding-to-left--rose">View our data</button>
+        </div>
+    </div>
+    <div class="pt-16">
+        <span class="line-divider-solid white-text"></span>
+    </div>
+    <div class="pt-16">
+        <h2 class="header-typography"> Your private API key for all use-cases</h2>
+    </div>
+    <MudExpansionPanels MultiExpansion="true" Class="pt-8">
+        <MudExpansionPanel>
+            <TitleContent>
+                <div class="d-flex">
+                    <MudChip Variant="Variant.Outlined" Color="Color.Secondary">GET</MudChip>
+                    <MudText>Top <strong>100</strong> cryptocurrencies</MudText>
+                </div>
+            </TitleContent>
+            <ChildContent>
+                GET http://www.open-crypt-api-dev/cip/api/{apiKey}/get/all
+            </ChildContent>
+        </MudExpansionPanel>
+        <MudExpansionPanel>
+            <TitleContent>
+                <div class="d-flex">
+                    <MudChip Variant="Variant.Outlined" Color="Color.Secondary">GET</MudChip>
+                    <MudText>Cryptocurrencies by <strong>rank</strong></MudText>
+                </div>
+            </TitleContent>
+            <ChildContent>
+                GET http://www.open-crypt-api-dev/cip/api/{apiKey}/get/all
+            </ChildContent>
+        </MudExpansionPanel>
+    </MudExpansionPanels>
+    <div class="pt-16">
+        <div class="card mb-3" style="max-width: 70rem;">
+            <div class="row g-0">
+                <div class="col-md-4">
+                    <img src="css/Images/bitcoin-img.jpg" class="img-fluid rounded-start" alt="...">
+                </div>
+                <div class="col-md-8">
+                    <div class="card-body">
+                        <h5 class="card-title d-flex justify-content-center">Chart the right data</h5>
+                        <p class="card-text pt-8">
+                            Show your users the most accurate data on the market with our API. Whether you're building a wallet,
+                            a portfolio management tool, a new media offering, or more, we have the most advanced and updated data on the market for your product.
+                        </p>
+                        <p class="card-text"><small class="text-muted">Last updated 3 mins ago</small></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="pt-16 pb-8">
+        <div class="card mb-3" style="max-width: 70rem;">
+            <div class="row g-0">
+                <div class="col-md-8">
+                    <div class="card-body">
+                        <h5 class="card-title d-flex justify-content-center">Run experiments</h5>
+                        <p class="card-text pt-8">
+                            Build your own models with our data, to further your interest or just for fun. With our flexible and powerful API,
+                            we provide you with a set of data that will help you draw insights and make conclusions.
+                        </p>
+                        <p class="card-text"><small class="text-muted">Last updated 3 mins ago</small></p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <img src="css/Images/cryptos.jpg" class="img-fluid rounded-start" alt="...">
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
 @code {
 
+    private void OpenDialog()
+    {
+        DialogOptions closeOnEscapeKey = new DialogOptions() { CloseOnEscapeKey = true };
+
+        IDialogReference myDialogReference = DialogService.Show<ApiKeyCreater>("Create Api Key", closeOnEscapeKey);
+    }
 }
+
+
+
