@@ -23,13 +23,16 @@
             <button type="button" @onclick="@(() => Redirect("cryptocurrencies"))" href="/cryptocurrencies" class="css-button-sliding-to-left--rose">View our data</button>
         </div>
     </div>
-    <div class="pt-16">
+    <div class="pt-8">
         <span class="line-divider-solid white-text"></span>
     </div>
-    <div class="pt-16">
+    <div class="pt-8">
         <h2 class="header-typography">How to use the API</h2>
     </div>
-    <MudExpansionPanels Class="pt-6" MultiExpansion="true" style="min-width: 34rem;">
+    <div class="pt-4">
+        <MudText Style="@($"color:{Colors.Grey.Darken4}")" Typo="Typo.body1" Align="Align.Center">Requests must be sent via the Hypertext Transfer Protocol (HTTP).</MudText>
+    </div>
+    <MudExpansionPanels Class="pt-6" MultiExpansion="true" style="min-width: 40rem;">
         <MudExpansionPanel>
             <TitleContent>
                 <div class="d-flex gap-4">
@@ -41,13 +44,13 @@
                 <div class="d-flex gap-10 ml-2">
                     <MudText Class="pt-2" Align="Align.Left"><b>GET</b></MudText>
                     <MudText Class="pt-2" Align="Align.Left">@_top100CryptosRequestUri.AbsolutePath </MudText>
-                    <MudTooltip Text="@(_copied ? "Success" : "Copy to clipboard")">
-                        <MudIconButton Color="Color.Secondary" Icon="@(!_copied ? Icons.Material.Filled.ContentCopy : Icons.Material.Filled.Check)" Disabled="_copied" OnClick="@(() => CopyTextToClipboard(_top100CryptosRequestUri.AbsolutePath))" aria-label="copy-to-clipboard"></MudIconButton>
+                    <MudTooltip Text="@(_copiedRequest1 ? "Success" : "Copy to clipboard")">
+                        <MudIconButton Color="Color.Secondary" Icon="@(!_copiedRequest1 ? Icons.Material.Filled.ContentCopy : Icons.Material.Filled.Check)" Disabled="_copiedRequest1" OnClick="@(() => CopyRequest1ToClipboard(_top100CryptosRequestUri.AbsolutePath))" aria-label="copy-to-clipboard"></MudIconButton>
                     </MudTooltip>
                 </div>
             </ChildContent>
         </MudExpansionPanel>
-        <MudExpansionPanel Class="pt-4">
+        <MudExpansionPanel Class="mt-4">
             <TitleContent>
                 <div class="d-flex gap-4">
                     <MudChip Icon="@Icons.Material.Filled.Bolt" Color="Color.Secondary">GET</MudChip>
@@ -58,36 +61,55 @@
                 <div class="d-flex gap-10 ml-2">
                     <MudText Class="pt-2" Align="Align.Left"><b>GET</b></MudText>
                     <MudText Class="pt-2" Align="Align.Left">@_cryptosByRankRequestUri.AbsolutePath</MudText>
-                    <MudTooltip Text="@(_copied ? "Success" : "Copy to clipboard")">
-                        <MudIconButton Color="Color.Secondary" Icon="@(!_copied ? Icons.Material.Filled.ContentCopy : Icons.Material.Filled.Check)" Disabled="_copied" OnClick="@(() => CopyTextToClipboard(_cryptosByRankRequestUri.AbsolutePath))" aria-label="copy-to-clipboard"></MudIconButton>
+                    <MudTooltip Text="@(_copiedRequest2 ? "Success" : "Copy to clipboard")">
+                        <MudIconButton Color="Color.Secondary" Icon="@(!_copiedRequest2 ? Icons.Material.Filled.ContentCopy : Icons.Material.Filled.Check)" Disabled="_copiedRequest2" OnClick="@(() => CopyRequest2ToClipboard(_cryptosByRankRequestUri.AbsolutePath))" aria-label="copy-to-clipboard"></MudIconButton>
                     </MudTooltip>
                 </div>                
             </ChildContent>
         </MudExpansionPanel>
     </MudExpansionPanels>
-    <div class="pt-6">
+    <div class="pt-8">
         <span class="line-divider-solid white-text"></span>
     </div>
-    <div class="pt-6">
+    <div class="pt-8">
         <h2 class="header-typography">Response structure</h2>
     </div>
-    <div class="pt-8">
-        @((MarkupString)_responseObjectJson)
+    <div class="pt-4 d-flex flex-column gap-4">
+        <MudText Typo="Typo.body1" Align="Align.Center">The json returned in the request's response will contain important request meta-data, as well as the relevant cryptocurrency information. </MudText>
+        <MudText Typo="Typo.subtitle2" Align="Align.Center">The two models below display the objects contained in the response.</MudText>
+    </div>
+    <div class="pt-4 d-flex">
+        <CodeSnippet Language="Language.csharp" Style="Style.VisualStudio">
+            public class ApiResponse
+            {
+                public Cryptocurrency[] Cryptocurrencies { get; set; }
+                public string RequestError { get; set; } = string.Empty;
+                public bool IsValid { get; set; } = false;
+                public int RequestStatusCode { get; set; }       
+            }
+        </CodeSnippet>
+        <CodeSnippet Language="Language.csharp" Style="Style.VisualStudio">
+            public class Cryptocurrency
+            {
+                public short Rank { get; set; }
+                public string Name { get; set; } = string.Empty;
+                public string? Abbreviation { get; set; }
+                public string USDValuation { get; set; } = string.Empty;
+                public string MarketCap { get; set; } = string.Empty;
+                public string? Description { get; set; }
+            }
+        </CodeSnippet>
     </div>
 </div>
 
 @code {
-    private bool _copyingToClipboard = false;
-    private bool _copied = false;
-    private string _responseObjectJson = string.Empty;
+    private bool _copyingRequest1ToClipboard = false;
+    private bool _copyingRequest2ToClipboard = false;
+    private bool _copiedRequest1 = false;
+    private bool _copiedRequest2 = false;
 
     private Uri _top100CryptosRequestUri = new Uri("https://get-all-crpyptos/your-api-key/get/all");
     private Uri _cryptosByRankRequestUri = new Uri("https://get-all-crpyptos/your-api-key/get/rank");
-
-    protected override void OnInitialized()
-    {
-        _responseObjectJson = ReturnJsonStructure(typeof(ApiResponse));
-    }
 
     private void OpenDialog()
     {
@@ -96,60 +118,46 @@
         IDialogReference myDialogReference = DialogService.Show<ApiKeyCreater>("Create Api Key", closeOnEscapeKey);
     }
 
-    private async Task CopyTextToClipboard(string text)
+    private async Task CopyRequest1ToClipboard(string text)
     {
-        _copyingToClipboard = true;
+        _copyingRequest1ToClipboard = true;
         await jsRuntime.InvokeVoidAsync("navigator.clipboard.writeText", text);
-        _copyingToClipboard = false;
-        _copied = true;
+        _copyingRequest1ToClipboard = false;
+        _copiedRequest1 = true;
+        StateHasChanged();
+        _ = ResetRequest1CopyingLogic();
+    }
+
+    private async Task CopyRequest2ToClipboard(string text)
+    {
+        _copyingRequest2ToClipboard = true;
+        await jsRuntime.InvokeVoidAsync("navigator.clipboard.writeText", text);
+        _copyingRequest2ToClipboard = false;
+        _copiedRequest2 = true;
+        StateHasChanged();
+        _ = ResetRequest2CopyingLogic();
+
+    }
+
+    private async Task ResetRequest1CopyingLogic()
+    {
+        await Task.Delay(5000);
+        _copiedRequest1 = false;
+        _copyingRequest1ToClipboard = false;
+        StateHasChanged();
+    }
+
+    private async Task ResetRequest2CopyingLogic()
+    {
+        await Task.Delay(5000);
+        _copiedRequest2 = false;
+        _copyingRequest2ToClipboard = false;
         StateHasChanged();
     }
 
     private void Redirect(string page)
     {
         _navigationManager.NavigateTo(page);
-    }
-
-    private static string ReturnJsonStructure(Type type)
-    {
-        PropertyInfo[] modelProperties = type.GetProperties();
-        StringBuilder stringBuilder = new();
-        stringBuilder.AppendLine("<ul>");
-
-        foreach(PropertyInfo property in modelProperties)
-        {
-            if(IsEnumerable(property))
-            {
-                Type? genericArgumentType = GetCollectionType(property.PropertyType);
-                if (genericArgumentType is not null)
-                {
-                    stringBuilder.AppendLine($"<li>{genericArgumentType.Name}[]:");
-                    stringBuilder.Append(ReturnJsonStructure(genericArgumentType));
-                    stringBuilder.AppendLine($"</li>");
-                    continue;
-                }
-            }
-            if(property.PropertyType.IsClass && property.PropertyType != typeof(string))
-            {
-                stringBuilder.AppendLine($"<li>{property.PropertyType.Name}:");
-                stringBuilder.AppendLine(ReturnJsonStructure(property.PropertyType));
-                stringBuilder.AppendLine($"</li>");
-                continue;
-            }
-            stringBuilder.AppendLine($"<li>{property.Name}: {property.PropertyType.Name}</li>");
-        }
-        stringBuilder.AppendLine("</ul>");
-        return stringBuilder.ToString();
-    }
-
-    private static bool IsEnumerable(PropertyInfo pi)
-    {
-        return typeof(IEnumerable).IsAssignableFrom(pi.PropertyType) && pi.PropertyType != typeof(string);
-    }
-
-    private static Type? GetCollectionType(Type collectionType)
-    {
-        return CustomTypeExtensions.GetAnyElementType(collectionType);
     }
 }
 

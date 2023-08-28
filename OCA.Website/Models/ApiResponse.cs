@@ -1,6 +1,6 @@
 ﻿namespace OCA.Website.Models
 {
-    public class ApiResponse
+    public sealed class ApiResponse
     {
         public IEnumerable<Cryptocurrency> Cryptocurrencies { get; set; } = Enumerable.Empty<Cryptocurrency>();
         public string RequestError { get; set; } = string.Empty;

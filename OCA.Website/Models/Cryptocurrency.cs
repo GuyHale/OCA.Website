@@ -1,6 +1,6 @@
 ﻿namespace OCA.Website.Models
 {
-    public class Cryptocurrency
+    public sealed class Cryptocurrency
     {
         public short Rank { get; set; }
         public string Name { get; set; } = string.Empty;
