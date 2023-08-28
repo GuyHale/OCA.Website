@@ -4,6 +4,7 @@
 @inject IJSRuntime jsRuntime
 @inject NavigationManager _navigationManager
 @using OCA.Website.Components;
+@using OCA.Website.Helpers;
 @using OCA.Website.Models;
 @using System.Reflection;
 @using System.Text;
@@ -119,16 +120,21 @@
         {
             if(IsEnumerable(property))
             {
-                Type? newType = GetCollectionType(type, property);
-                if(newType is not null)
+                Type? genericArgumentType = GetCollectionType(property.PropertyType);
+                if (genericArgumentType is not null)
                 {
-                    stringBuilder.AppendLine($"<li>{newType.Name}:</li>");
-                    stringBuilder.Append(ReturnJsonStructure(newType));
+                    stringBuilder.AppendLine($"<li>{genericArgumentType.Name}[]:");
+                    stringBuilder.Append(ReturnJsonStructure(genericArgumentType));
+                    stringBuilder.AppendLine($"</li>");
+                    continue;
                 }
             }
-            if(property.PropertyType.IsClass)
+            if(property.PropertyType.IsClass && property.PropertyType != typeof(string))
             {
+                stringBuilder.AppendLine($"<li>{property.PropertyType.Name}:");
                 stringBuilder.AppendLine(ReturnJsonStructure(property.PropertyType));
+                stringBuilder.AppendLine($"</li>");
+                continue;
             }
             stringBuilder.AppendLine($"<li>{property.Name}: {property.PropertyType.Name}</li>");
         }
@@ -141,16 +147,9 @@
         return typeof(IEnumerable).IsAssignableFrom(pi.PropertyType) && pi.PropertyType != typeof(string);
     }
 
-    private static Type? GetCollectionType(Type type, PropertyInfo propertyInfo)
+    private static Type? GetCollectionType(Type collectionType)
     {
-        foreach (var bt in type.GetInterfaces())
-        {
-            if (bt.IsGenericType && bt.GetGenericTypeDefinition() == typeof(IEnumerable<>))
-            {
-                return bt.GetGenericArguments()[0];
-            }
-        }
-        return null;
+        return CustomTypeExtensions.GetAnyElementType(collectionType);
     }
 }
 
